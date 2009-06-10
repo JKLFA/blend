@@ -1,5 +1,5 @@
 /*
-	jQuery Blend v1.0
+	jQuery Blend v1.1
 	(c) 2009 Jack Moore - www.colorpowered.com - jack@colorpowered.com
 	Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 */
@@ -12,15 +12,32 @@
     */
     
     $.fn.blend = function(options, callback) {
-        var settings = $.extend({}, $.fn.blend.settings, options);
+	
+	var settings = $.extend({}, $.fn.blend.settings, options);
         
         $(this).each(function(){
             
-            var $this, $target, $hover, $clone, bgImage, bgRepeat, bgPosition, bgxPosition, bgyPosition, bgColor;
-            
-            $this = $(this);
-            
-            $target = $(settings.target ? settings.target : this);
+            var $this = $(this),
+		$target = $(settings.target ? settings.target : this),
+		$hover,
+		target = [],
+		i,
+		length,
+		style = {},
+		active = false,
+		out = 0,
+		opacity = settings.opacity,
+		properties = [
+		    'background-color',
+		    'background-image',
+		    'background-repeat',
+		    'background-attachment',
+		    'background-position',
+		    'background-position-x',
+		    'background-position-y'
+		];
+	    
+	    length = properties.length;
             
             if($target[0].style.position != 'absolute'){
                 $target.css({position:'relative'});   
@@ -30,31 +47,25 @@
                 $target.wrapInner('<div style="position:relative" />');
             }
 	    
-            bgImage = $target.css('background-image');
-            bgRepeat = $target.css('background-repeat');
-            bgColor = $target.css('background-color');
-	    bgxPosition = $target.css('background-position-x');
-	    bgyPosition = $target.css('background-position-y');
-	    bgPosition = $target.css('background-position');
+	    for (i=0; i<length; i++){
+		target[i] = $target.css(properties[i]);
+	    }
 	    
 	    $target.addClass("hover");
 	    
+	    style = {};
+		style.position='absolute';
+		style.top=0;
+		style.left=0;
+		style.width=$target.css('width');
+		style.height=$target.css('height');
+		for (i=0; i<length; i++){
+		    style[properties[i]] = $target.css(properties[i]);
+		}
+	    
 	    //checks to see if blend has already been applied to an element.
             if($target.find(".jsblend").length === 0){
-                $hover = $('<div class="jsblend" />').css({
-                    position:'absolute',
-                    top:'0',
-                    left:'0',
-                    width:$target.css('width'),
-                    height:$target.css('height'),
-		    cursor:'pointer',
-                    'background-image':$target.css('background-image'),
-                    'background-repeat':$target.css('background-repeat'),
-		    'background-position':$target.css('background-position'),
-                    'background-position-x':$target.css('background-position-x'),
-		    'background-position-y':$target.css('background-position-y'),
-                    'background-color':$target.css('background-color')
-                });
+                $hover = $('<div class="jsblend" />').css(style);
 		
 		if(settings.top){
 		    $hover.appendTo($target);
@@ -65,18 +76,12 @@
                 $hover = $target.find(".jsblend");
             }
 	    
-	    $target.css({
-		'background-image':bgImage,
-		'background-repeat':bgRepeat,
-		'background-position':bgPosition,
-		'background-position-x':bgxPosition,
-		'background-position-y':bgyPosition,
-		'background-color':bgColor
-	    });
+	    style = {};
+		for (i=0; i<length; i++){
+		    style[properties[i]] = target[i];
+		}
 	    
-            var active = false;
-            var out = 0;
-            var opacity = settings.opacity;
+	    $target.css(style);
             
             if(settings.reverse){
                 out = settings.opacity;
@@ -110,6 +115,7 @@
                     $hover.stop().fadeTo(settings.speed, out);
                 });
             }
+	    
         });
         return this;
     };
