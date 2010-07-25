@@ -11,6 +11,10 @@ http://groups.google.com/group/jquery_blend/topics/
 
 RELEASE NOTES:
 ----------------------------------------------------------------------------------------------------------
+Version 2 - July 25 2010
+* Complete rewrite.
+* Removed the optional settings as they were infrequenly used.
+
 Version 1.3 - Jan 28 2010
 * Small bug fix for use with jQuery 1.4
 

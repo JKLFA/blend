@@ -1,136 +1,82 @@
-/*
-	jQuery Blend v1.3
-	(c) 2009 Jack Moore - www.colorpowered.com - jack@colorpowered.com
-	Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
-*/
-(function($){
-    /*
-        Blend creates a 2nd layer on top of the target element.
-        This layer is faded in and out to create the effect.  The orignal, bottom layer
-        has it's class set to 'hover' and remains that way for the duration to
-        keep the CSS :hover state from being apparent when the object is moused-over.
-    */
-    
-    $.fn.blend = function(options, callback) {
-	// Disable Blend for FireFox 2 because of a bug that does not allow JavaScript
-	// to retrieve the CSS background position.
-	// More info: https://bugzilla.mozilla.org/show_bug.cgi?id=316981
-	if ($.browser.mozilla && (parseFloat($.browser.version) < 1.9)) { return this; }
-	
-	var settings = $.extend({}, $.fn.blend.settings, options);
-        $(this).each(function(){    
-	    var $this = $(this),
-		$target = $(settings.target ? settings.target : this),
-		$hover,
-		target = [],
-		i,
-		length,
-		style = {},
-		active = false,
-		out = 0,
-		opacity = settings.opacity,
-		bg = 'background-',
+// Blend 2 for jQuery 1.3+
+// Copyright (c) 2010 Jack Moore - jack@colorpowered.com
+// Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
+// Blend creates a 2nd layer on top of the selected element.
+// This layer is faded in and out to create the effect.  The orignal, bottom layer
+// has it's class set to 'hover' and remains that way for the duration to
+// keep the CSS :hover state from being apparent when the object is moused-over.
+(function ($, window) {
+
+    $.fn.blend = function (speed, callback) {
+		var $this = this,
+		background = 'background',
+		padding = 'padding',
 		properties = [
-		    bg+'color',
-		    bg+'image',
-		    bg+'repeat',
-		    bg+'attachment',
-		    bg+'position',
-		    bg+'position-x',
-		    bg+'position-y'
+		    background + 'Color',
+		    background + 'Image',
+		    background + 'Repeat',
+		    background + 'Attachment',
+		    background + 'Position', // Standards browsers
+		    background + 'PositionX', // IE only
+		    background + 'PositionY', // IE only
+			padding + 'Top',
+			padding + 'Left',
+			padding + 'Right',
+			padding + 'Bottom',
+			'width',
+			'height'
 		];
-	    
-	    length = properties.length;
-	    
-	    if($target[0].style.position !== 'absolute'){
-		$target.css({position:'relative'});   
-	    }
-	    
-	    if(!$target.hasClass('hover')){
-		$target.wrapInner('<div style="position:relative" />');
-	    }
-	    
-	    for (i=0; i<length; i++){
-		target[i] = $target.css(properties[i]);
-	    }
-	    
-	    $target.addClass("hover");
-	    
-	    style = {};
-		style.position='absolute';
-		style.top=0;
-		style.left=0;
-		style.width=$target.width();
-		style.height=$target.height();
-		for (i=0; i<length; i++){
-		    style[properties[i]] = $target.css(properties[i]);
+		
+		speed = parseInt(speed, 10) || $.fn.blend.speed;
+		callback = callback || $.fn.blend.callback;
+		
+		// 1. Check to see if the jQuery object contains elements.
+		// 2. Check to see if the effect has already been applied
+		// 3. Check to see that the visitor is not using FireFox 2
+		// or lower due to a bug that does not allow JavaScript to retrieve the CSS background position.
+		// More info: https://bugzilla.mozilla.org/show_bug.cgi?id=316981
+		if ($this[0] && !$this.find('.jsblend')[0] && !($.browser.mozilla && parseFloat($.browser.version) < 1.9)) {
+			
+			$this.each(function () {
+				
+				var base = this,
+				i,
+				style = base.currentStyle || window.getComputedStyle(base, null),
+				$layer = $('<span class="jsblend" style="position:absolute;top:0;left:0;display:block"/>');
+				
+				if (base.style.position !== 'absolute') {
+					base.style.position = 'relative';
+				}
+				
+				for (i = 0; properties[i]; i += 1) {
+					if (style[properties[i]]) {
+						$layer[0].style[properties[i]] = style[properties[i]];
+					}
+				}
+				
+				$(base).addClass('hover').wrapInner($layer);
+				
+				$layer = $('.jsblend', base);
+				
+				$(base).bind('mouseenter mouseleave', function (e) {
+					if (e.type === 'mouseenter') {
+						$layer.stop().fadeTo(speed, 0, function () {
+							if (callback && typeof(callback) === 'function') {
+								callback();
+							}
+						});
+					} else {
+						$layer.stop().fadeTo(speed, 1);
+					}
+				});
+			});
 		}
 		
-	    //checks to see if blend has already been applied to an element.
-	    if($target.find(".jsblend").length === 0){
-		$hover = $('<div class="jsblend" />').css(style);
-		
-		if(settings.top){
-		    $hover.appendTo($target);
-		} else {
-		    $hover.prependTo($target);
-		}
-	    } else {
-		$hover = $target.find(".jsblend");
-	    }
-	    
-	    style = {};
-	    for (i=0; i<length; i++){
-		style[properties[i]] = target[i];
-	    }
-	    
-	    $target.css(style);
-	    
-	    if(settings.reverse){
-		out = settings.opacity;
-		opacity = 0;
-	    }
-	    $hover.css({opacity:out});
-	    
-	    function pulse(o){
-		if(active){
-		    $hover.fadeTo(settings.speed, o, function(){
-			pulse(o===out?opacity:out);
-		    });
-		}
-	    }
-	    
-	    if(settings.pulse && settings.active){
-		active = true;
-		pulse(opacity);
-	    } else if(settings.pulse){
-		$this.hover(function(){
-		    active = true;
-		    pulse(opacity);
-		}, function(){
-		    active = false;
-		    $hover.stop(true).fadeTo(settings.speed, out);
-		});
-	    } else {
-		$this.hover(function(){
-		    $hover.stop().fadeTo(settings.speed, opacity);
-		}, function(){
-		    $hover.stop().fadeTo(settings.speed, out);
-		});
-	    }
-	    
-	});
-        return this;
-    };
-    
-    $.fn.blend.settings = {
-        speed : 500,
-        opacity : 1,
-        target : false,
-        reverse : false,
-	pulse : false,
-	active : false,
-	top : false
-    };
-    
-}(jQuery));
+		return $this;
+	};
+	
+	$.fn.blend.speed = 400;
+	$.fn.blend.callback = null;
+	
+}(jQuery, this));
