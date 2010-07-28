@@ -5,6 +5,9 @@ http://colorpowered.com/blend/
 
 RELEASE NOTES:
 ----------------------------------------------------------------------------------------------------------
+Version 2.1 - July 27 2010
+* Small change to how the content inside the target is handled.
+
 Version 2 - July 25 2010
 * Complete rewrite.
 * Removed the optional settings as they were rarely used.

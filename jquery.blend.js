@@ -1,4 +1,4 @@
-// Blend 2 for jQuery 1.3+
+// Blend 2.1 for jQuery 1.3+
 // Copyright (c) 2010 Jack Moore - jack@colorpowered.com
 // Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
@@ -43,7 +43,9 @@
 				var base = this,
 				i,
 				style = base.currentStyle || window.getComputedStyle(base, null),
-				$layer = $('<span class="jsblend" style="position:absolute;top:0;left:0;display:block"/>');
+				layer = '<span style="position:absolute;top:0;left:0;display:block"/>',
+				$content = $(layer),
+				$hover = $(layer);
 				
 				if (base.style.position !== 'absolute') {
 					base.style.position = 'relative';
@@ -51,23 +53,23 @@
 				
 				for (i = 0; properties[i]; i += 1) {
 					if (style[properties[i]]) {
-						$layer[0].style[properties[i]] = style[properties[i]];
+						$hover[0].style[properties[i]] = $content[0].style[properties[i]] = style[properties[i]];
 					}
 				}
 				
-				$(base).addClass('hover').wrapInner($layer);
+				$content[0].style.backgroundImage = $content[0].style.backgroundColor = '';
 				
-				$layer = $('.jsblend', base);
+				$(base).wrapInner($content).addClass('hover').prepend($hover);
 				
 				$(base).bind('mouseenter mouseleave', function (e) {
 					if (e.type === 'mouseenter') {
-						$layer.stop().fadeTo(speed, 0, function () {
+						$hover.stop().fadeTo(speed, 0, function () {
 							if (callback && typeof(callback) === 'function') {
 								callback();
 							}
 						});
 					} else {
-						$layer.stop().fadeTo(speed, 1);
+						$hover.stop().fadeTo(speed, 1);
 					}
 				});
 			});
