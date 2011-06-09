@@ -5,6 +5,11 @@ http://colorpowered.com/blend/
 
 RELEASE NOTES:
 ----------------------------------------------------------------------------------------------------------
+Version 2.2 - June 09 2011
+* Bug fix for absolutely positioned elements
+* Minor code optimization.
+* Removed special handling for Firefox 2.
+
 Version 2.1 - July 27 2010
 * Small change to how the content inside the target is handled.
 
